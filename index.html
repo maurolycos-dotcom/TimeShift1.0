@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Flight Time</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #111;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app {
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 40px;
+        }
+
+        .clock {
+            font-size: 64px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin: 30px 0;
+        }
+
+        .info {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #aaa;
+        }
+
+        button {
+            margin-top: 30px;
+            padding: 14px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <h1>✈️ München → Singapur</h1>
+
+    <div class="clock" id="clock">
+        12:00
+    </div>
+
+    <div class="info">
+        <div>Flugzeit: <span id="flightTime">00:00</span></div>
+        <div>Vergangen: <span id="elapsed">00:00</span></div>
+        <div>Zeitverschiebung: +6:00 h</div>
+    </div>
+
+    <button onclick="startFlight()">
+        Flug starten
+    </button>
+
+</div>
+
+
+<script>
+
+    // ==========================================
+    // FLUGDATEN
+    // ==========================================
+
+    const departureHour = 12;
+    const departureMinute = 0;
+
+    const totalFlightMinutes = 12 * 60;
+
+    // München -> Singapur = +6 Stunden
+    const timeDifferenceMinutes = 6 * 60;
+
+
+    // ==========================================
+    // VARIABLEN
+    // ==========================================
+
+    let flightStartTime = null;
+    let timer = null;
+
+
+    // ==========================================
+    // FLUG STARTEN
+    // ==========================================
+
+    function startFlight() {
+
+        flightStartTime = Date.now();
+
+        if (timer) {
+            clearInterval(timer);
+        }
+
+        timer = setInterval(updateFlight, 1000);
+
+        updateFlight();
+    }
+
+
+    // ==========================================
+    // ZEIT BERECHNEN
+    // ==========================================
+
+    function updateFlight() {
+
+        if (!flightStartTime) {
+            return;
+        }
+
+        // Tatsächlich vergangene Zeit in Minuten
+        const elapsedRealMinutes =
+            (Date.now() - flightStartTime) / 60000;
+
+
+        // Flugzeit begrenzen
+        const elapsedMinutes =
+            Math.min(elapsedRealMinutes, totalFlightMinutes);
+
+
+        // ==========================================
+        // UNSERE FORMEL
+        //
+        // theoretische Zeit =
+        // Abflugzeit
+        // + vergangene Flugzeit
+        // + Zeitverschiebungsanteil
+        // ==========================================
+
+        const theoreticalMinutes =
+            departureHour * 60
+            + departureMinute
+            + elapsedMinutes
+            + elapsedMinutes *
+              (timeDifferenceMinutes / totalFlightMinutes);
+
+
+        // ==========================================
+        // 24-STUNDEN-MODELL
+        // ==========================================
+
+        const minutesInDay = 24 * 60;
+
+        const displayMinutes =
+            ((theoreticalMinutes % minutesInDay)
+            + minutesInDay)
+            % minutesInDay;
+
+
+        // Stunden und Minuten
+        const hours =
+            Math.floor(displayMinutes / 60);
+
+        const minutes =
+            Math.floor(displayMinutes % 60);
+
+
+        // ==========================================
+        // ANZEIGE
+        // ==========================================
+
+        document.getElementById("clock").textContent =
+            formatTime(hours, minutes);
+
+        document.getElementById("elapsed").textContent =
+            formatDuration(elapsedMinutes);
+
+        document.getElementById("flightTime").textContent =
+            formatDuration(totalFlightMinutes);
+    }
+
+
+    // ==========================================
+    // ZEIT FORMATIEREN
+    // ==========================================
+
+    function formatTime(hours, minutes) {
+
+        return String(hours).padStart(2, "0")
+            + ":"
+            + String(minutes).padStart(2, "0");
+    }
+
+
+    function formatDuration(minutes) {
+
+        const h = Math.floor(minutes / 60);
+        const m = Math.floor(minutes % 60);
+
+        return String(h).padStart(2, "0")
+            + ":"
+            + String(m).padStart(2, "0");
+    }
+
+</script>
+
+</body>
+</html>
