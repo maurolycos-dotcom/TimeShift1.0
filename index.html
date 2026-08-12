@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Time</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            text-align: center;
+        }
+
+        .app {
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
+
+        #clock {
+            font-size: 72px;
+            font-weight: 600;
+            margin: 60px 0 30px;
+        }
+
+        .info {
+            font-size: 18px;
+            line-height: 2;
+            color: #aaa;
+        }
+
+        button {
+            margin-top: 40px;
+            padding: 16px 30px;
+            font-size: 20px;
+            border: 0;
+            border-radius: 14px;
+            background: white;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <h1>✈️ München → Singapur</h1>
+
+    <div id="clock">12:00</div>
+
+    <div class="info">
+        <div>Vergangene Flugzeit: <span id="elapsed">00:00</span></div>
+        <div>Verbleibende Flugzeit: <span id="remaining">12:00</span></div>
+    </div>
+
+    <button id="startButton">Flug starten</button>
+
+</div>
+
+<script>
+
+const abflugStunde = 12;
+const abflugMinute = 0;
+
+const gesamtFlugzeit = 12 * 60;       // 12 Stunden
+const zeitverschiebung = 6 * 60;      // +6 Stunden
+
+let startzeit = null;
+let timer = null;
+
+
+// Flug starten
+document.getElementById("startButton").addEventListener("click", function () {
+
+    startzeit = Date.now();
+
+    // Falls bereits ein Timer läuft
+    if (timer !== null) {
+        clearInterval(timer);
+    }
+
+    timer = setInterval(berechnen, 1000);
+
+    berechnen();
+});
+
+
+// Berechnung
+function berechnen() {
+
+    if (startzeit === null) {
+        return;
+    }
+
+    // Tatsächlich vergangene Minuten
+    let vergangen =
+        (Date.now() - startzeit) / 60000;
+
+    // Nach Ende des Fluges nicht weiterzählen
+    if (vergangen > gesamtFlugzeit) {
+        vergangen = gesamtFlugzeit;
+    }
+
+
+    // -----------------------------------------
+    // UNSERE FORMEL
+    // -----------------------------------------
+
+    let theoretischeZeit =
+        (abflugStunde * 60)
+        + abflugMinute
+        + vergangen
+        + vergangen *
+        (zeitverschiebung / gesamtFlugzeit);
+
+
+    // -----------------------------------------
+    // 24-STUNDEN-MODELL
+    // -----------------------------------------
+
+    theoretischeZeit =
+        theoretischeZeit % (24 * 60);
+
+
+    // Stunden und Minuten
+    const stunden =
+        Math.floor(theoretischeZeit / 60);
+
+    const minuten =
+        Math.floor(theoretischeZeit % 60);
+
+
+    // Anzeige
+    document.getElementById("clock").textContent =
+        zweiStellen(stunden) + ":" + zweiStellen(minuten);
+
+
+    // Vergangene Zeit
+    document.getElementById("elapsed").textContent =
+        dauerFormatieren(vergangen);
+
+
+    // Verbleibende Zeit
+    const verbleibend =
+        gesamtFlugzeit - vergangen;
+
+    document.getElementById("remaining").textContent =
+        dauerFormatieren(verbleibend);
+}
+
+
+// 01 statt 1
+function zweiStellen(zahl) {
+
+    return String(zahl).padStart(2, "0");
+
+}
+
+
+// Dauer als HH:MM
+function dauerFormatieren(minuten) {
+
+    const stunden =
+        Math.floor(minuten / 60);
+
+    const rest =
+        Math.floor(minuten % 60);
+
+    return zweiStellen(stunden) + ":" + zweiStellen(rest);
+
+}
+
+</script>
+
+</body>
+</html>
